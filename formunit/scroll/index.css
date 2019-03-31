@@ -1,0 +1,94 @@
+.component-container{
+	display: block;
+}
+.scroll-component{
+	position: fixed;
+	top:0;
+	left:-99990px;
+	bottom:0;
+	right:0;
+	width: 100%;
+	height:100vh;
+	z-index: 9900;
+	font-size: 16px;
+}
+.scroll-component .scroll-opque{
+	height:100vh;
+	width: 100%;
+	background-color: rgba(0,0,0,0.2);
+	position: relative;
+	z-index: 9901;
+}
+.scroll-component .scroll-container{
+	display: block;
+	position: absolute;
+	background-color: #d5d8df;
+	width: 100%;
+	height:15rem;
+	z-index: 9902;
+	overflow: hidden;
+	bottom: 0;
+	left:0;
+	padding: 0;
+}
+.scroll-component .scroll-container .scroll-btn{
+	height:2.5rem;
+	line-height: 2.5rem;
+	background-color: #fff;
+	display: flex;
+	justify-content: space-between;
+	color: #0575f2;
+}
+.scroll-component .scroll-container .scroll-btn .scroll-btn-left{
+	padding: 0 1rem;
+}
+.scroll-component .scroll-container .scroll-btn .scroll-btn-right{
+	padding: 0 1rem;
+}
+.scroll-component .scroll-container .scroll-btn .scroll-btn-right.disable{
+	opacity: 0.5;
+}
+.scroll-component .scroll-container .scroll-content{
+	-webkit-mask: -webkit-gradient(linear, 0 40%, 0 0, from(#debb47), to(rgba(36, 142, 36, 0)));
+	-webkit-mask: -webkit-linear-gradient(bottom, #debb47 50%, rgba(36, 142, 36, 0));
+	position: relative;
+	display: flex;
+}
+.scroll-component .scroll-container .scroll-column {
+	position: relative;
+	z-index: 9904;
+	flex: 1;
+	text-align: center;
+	overflow: hidden;
+	height: 12.5rem;
+	background-color: transparent;
+  -webkit-mask: -webkit-gradient(linear, 0 50%, 0 100%, from(#debb47), to(rgba(36, 142, 36, 0)));
+  -webkit-mask: -webkit-linear-gradient(top, #debb47 50%, rgba(36, 142, 36, 0));
+}
+.scroll-component .scroll-container .scroll-column .scroll-column-item{
+	position: absolute;
+	top:0px;
+	left:0px;
+	width:100%;
+	z-index: 9905;
+	height: auto;
+	word-break: keep-all;
+}
+.scroll-column .scroll-column-item .scroll-item{
+	height:2.5rem;
+	line-height: 2.5rem;
+	text-align: center;
+	width:100%;
+	font-size: 0.9rem;
+	word-break: keep-all;
+}
+.scroll-content .scroll-rule{
+	position: absolute;
+	z-index: 9902;
+	width: 100%;
+	top:5rem;
+	left:0px;
+	height:2.5rem;
+	border-top: 1px solid #96979b;
+	border-bottom: 1px solid #96979b;
+}
