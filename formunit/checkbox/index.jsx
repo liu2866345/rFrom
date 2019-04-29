@@ -29,10 +29,7 @@ class Input extends Component {
   				console.error('类型错误：'+name+'的check值必须为数组类型！')
   				return null
   			}
-  			let flag = -1
-  			checkVal.find((i,k)=>{
-  				flag = i==val?k:-1
-  			})
+  			let flag = checkVal.indexOf(val)
   			if(flag==-1){
   				checkVal.push(val)
   			}else{
@@ -58,8 +55,8 @@ class Input extends Component {
   			injectData.value = {check:[],text:''}
   		}
   		let name = element.currentTarget.getAttribute('name')
-  		let val = element.currentTarget.getAttribute('value')
-  		resultObj['eventType'] = 'click'
+  		let val = element.currentTarget.value
+  		resultObj['eventType'] = 'change'
   		resultObj['keyName'] = name
   		injectData.value['text'] = val
   		resultObj['value'] = injectData.value
@@ -95,13 +92,13 @@ class Input extends Component {
 	    		}
     		</div>
     		{
-	    			value.check&&value.check.indexOf('-1')!==-1?(<div className="textarea-row"><div className="textarea-row-content" style={{height:injectData.height}}>
-		    			{
-		    				injectData.readOnly?(<div className="only-text">{value.text}</div>):(
-		    					<textarea name={injectData.name} onChange = { this.changeHandlerT } className="textarea" height={injectData.height}  value={value.text} placeholder={ injectData.placeholder }></textarea>
-		    				)
-		    			}
-		    		</div></div>):(null)
+    			value.check&&value.check.indexOf('-1')!==-1?(<div className="textarea-row"><div className="textarea-row-content" style={{height:injectData.height}}>
+	    			{
+	    				injectData.readOnly?(<div className="only-text">{value.text}</div>):(
+	    					<textarea name={injectData.name} onChange = { this.changeHandlerT } className="textarea" height={injectData.height}  value={value.text} placeholder={ injectData.placeholder }></textarea>
+	    				)
+	    			}
+	    		</div></div>):(null)
 	    		}
     	</div>
     )

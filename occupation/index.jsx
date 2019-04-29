@@ -14,14 +14,10 @@ class Occupations extends Component {
   /**
    * 获取当前的职业码值
    * 优先从state中获取，如果state没值那么表示是初始化由父级传入
-   * props的value作为初始的码值
+   * props的value作为初始的码值，props也可能是其它组件联动后的值那么必须传入确定的码值，不能为空
    */
   getOccValue = () => {
-  	let jd = this.props.injectData
-  	let val = this.state.value || this.props.injectData.value
-  	if(!val){
-  		val = jd.commonCarrer[0]['code']
-  	}
+  	let val = this.props.injectData.value
   	return val
   }
   /**
@@ -40,6 +36,7 @@ class Occupations extends Component {
    * 返回一个二维4项数组[1,101,10100,1010001]
    */
   transferDict = (dict , value) => {
+  	if(!value || !dict)return null;
   	let valArr = this.splitOccupationValue(value)
   	let resultArr = []
   	let currentArr = dict
@@ -61,6 +58,7 @@ class Occupations extends Component {
    * 返回【1，2，3，4】
    */
   splitOccupationValue = (value) => {
+  	if(!value)return value
   	let arr = []
   	for (var i=value.length ; i >= 1 ;) {
   		arr.unshift(value.substr(0,i))
@@ -79,6 +77,10 @@ class Occupations extends Component {
    */
   isCommonCarrer = (val , commonArr) => {
   	let result = false
+  	if(!val){
+  		//如果职业值为空那么表示是常见职业的请选择
+  		return true
+  	}
   	commonArr.map((item,key) => {
   		if(item.code == val){
   			result = true
@@ -93,17 +95,29 @@ class Occupations extends Component {
   	let val = e.currentTarget.value
   	let dict = this.getGenaralDict()
   	let result = null
+  	let temp = dict[0]
+  	let value = ''
   	if(val == '-1'){
-  		let temp = dict[0]
   		while(temp['item']){
   			temp = temp['item'][0]
   		}
-  		result = this.screenCarrer(temp['key'] , 0)
-  		this.setState({value:temp['key'] ,genaralCarrer: result})
+  		result = this.screenCarrer(dict[0]['key'] , 0 , temp['key'])
+  		value = temp['key']
+  		this.state.genaralCarrer = result
   	}else{
-  		this.setState({value:val})
+  		value = val
   	}
-  	
+  	this.triggerAction(value)
+  }
+  /**
+   * 根据val触发action，向外发射内部改变的值
+   */
+  triggerAction = (val) => {
+  	this.props.action&&this.props.action({
+  		keyName:this.props.injectData.name,
+  		value:val,
+  		eventType:'change'
+  	})
   }
   /**
    * 当前非常见职业change触发
@@ -113,16 +127,19 @@ class Occupations extends Component {
   changeGenaralCarrer = (e,index) => {
   	console.log('trigger genaral change event ',index)
   	let val = e.currentTarget.value
+  	
   	let result = this.screenCarrer(val , index)
-  	this.setState({value:result.value , genaralCarrer:result.genaralCarrer})
+  	this.state.genaralCarrer = result.genaralCarrer
+  	this.triggerAction(result.value)
   }
   /**
-   * 根据index筛选出新的value和genaralCarrer
+   * 根据index和index层级对应的code筛选出新的value和genaralCarrer
+   * 如果insertCode存在那么表示是常见职业切换到其它insertCode为一般职业的默认第一个值，否则取用户切换的值
    * 返回{value：’‘，genaralCarrer:[]}
    */
-  screenCarrer = (val , index) => {
+  screenCarrer = (val , index , insertCode) => {
   	let dict = this.getGenaralDict()
-  	let valArr = this.splitOccupationValue(this.getOccValue())
+  	let valArr = this.splitOccupationValue(insertCode||this.getOccValue())
   	let genaralCarrer = []
   	let loopDict = JSON.parse(JSON.stringify(dict))
   	valArr.map((item, key) => {
@@ -170,7 +187,8 @@ class Occupations extends Component {
   	return (<div className="occupation-model">
   		<div className="common-row">
   			<label  className="occupation-label">常见职业</label>
-  			<select className="occupation-select" value={commonVal} onChange={ this.changeCommerCarrer}>
+  			<select className={"occupation-select"+(commonVal?'':' init')} value={commonVal} onChange={ this.changeCommerCarrer}>
+  				{/* <option  value=''>请选择</option> */}
   				{
   					commonArr.map((item,key)=>{
   						return (<option key={key} value={item.code}>{item.name}</option>)
@@ -223,6 +241,7 @@ class Occupations extends Component {
 		  			</div>
 		  		</div>):(null)
 	  			}
+	  	{injectData.tips?(<div className="occ-tip">{injectData.tips}</div>):(null)}
   	</div>)
   }
 }

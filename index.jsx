@@ -80,7 +80,8 @@ class ReactFomer extends Component {
   		} else {
   			temp = item.name
   		}
-  		item.value = interfaceData[temp] || item.value
+  		//如果接口数据为空并且接口对象中不存在改建，那么取model预先配置的值
+  		item.value = interfaceData.hasOwnProperty(temp) ? interfaceData[temp] : item.value
   		if(!interfaceData[temp]){
   			console.warn('接口数据'+item.name+'属性值为空,取modal里的value='+item.value)
   		}
@@ -160,7 +161,8 @@ class ReactFomer extends Component {
 		  				//自定义插入的组件
 		  				if (Object.prototype.hasOwnProperty.call(slotComponent,item.type)){
 		  					let Self = slotComponent[item.type].props.as
-		  					return (<Self key={key} injectData = {item}  action = { this.componentAction }></Self>)
+		  					let selfProps = slotComponent[item.type].props
+		  					return (<Self key={key} {...selfProps} injectData = {item}  action = { this.componentAction }></Self>)
 		  				}
 	  				
 	    			})
@@ -191,6 +193,13 @@ export function changeModelData(interfaceData,modalData , obj){
 	}
 	return resultData
 }
+
+/**
+ * 根据obj修改接口数据和模型数据
+ * @param {Object} interfaceData 接口数据，总的接口外层数据
+ * @param {Object} modalData 模型数据，总的模型外层数据
+ * @param {Object} obj 如果obj.modalKey存在那么修改modalKey对应的值，否则修改value
+ */
 function transferData(interfaceData,modalData,obj){
 	let keyArray = obj.keyName.split('.')
 	let lastKey = keyArray.pop()
@@ -213,6 +222,9 @@ function transferData(interfaceData,modalData,obj){
 	}else{
 		//改变接口数据
 		keyArray.map((item, key)=>{
+			if(!temp[item]){
+				temp[item] = {}
+			}
 			temp = temp[item]
 		})
 		if(!temp){

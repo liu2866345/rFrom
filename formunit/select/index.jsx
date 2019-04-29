@@ -24,6 +24,7 @@ class Select extends Component {
   		this.props.action ( resultObj )
   	}
   }
+  
 
   render() {
   	let injectData = this.props.injectData || {}
@@ -32,9 +33,11 @@ class Select extends Component {
   		return null
   	}
   	let isInSelect = false
+  	let choiceText = '请选择'
   	injectData.enumOption.map((item,key) =>{
 		if(item.key == injectData.value){
 			isInSelect = true
+			choiceText = item.value 
 		}
 	})
     return (
@@ -42,9 +45,9 @@ class Select extends Component {
     		<label  className="select-row-label ">{ injectData.label }</label>
     		{
     			injectData.readOnly?(
-    				<span className="select-row-radio read-only">请选择</span>
+    				<span className="select-row-radio read-only">{injectData.value?choiceText:'请选择'}</span>
     			):(
-    				<select name = { injectData.name } onChange = { this.changeHandler } className={isInSelect?'select-row-radio ':'select-row-radio init'}>
+    				<select name = { injectData.name } value={injectData.value}  onChange = { (e)=>this.changeHandler(e) } className={isInSelect?'select-row-radio ':'select-row-radio init'}>
 		    			<option  value = "" >请选择</option>
 		    		{
 		    			injectData.enumOption.map((item,key) =>{

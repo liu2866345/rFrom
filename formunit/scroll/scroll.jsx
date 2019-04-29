@@ -21,13 +21,13 @@ class Scroll extends Component {
   	//将设置top的方法注册到父组件
   	this.props.registerInitFunc && this.props.registerInitFunc(this.setDefaultValue)
   	//禁止默认滚动事件
-//	this.refs.scrollComponent.addEventListener('touchmove',(e)=>{
-//		e.preventDefault()
-//	},{passive:false})
+	this.refs.scrollComponent.addEventListener('touchmove',(e)=>{
+		e.preventDefault()
+	},{passive:false})
   }
   
   preventEvent = (e)=>{
-  	e.preventDefault()
+	
   }
   
   /**
@@ -65,6 +65,7 @@ class Scroll extends Component {
   }
   
   touchStart = (e) => {
+  	e.nativeEvent.stopImmediatePropagation();
   	let target = e.currentTarget
   	target['r-start-y'] = e.targetTouches[0].screenY
   	target.style.webkitTransitionDuration = target.style.transitionDuration = '0ms'
@@ -81,6 +82,7 @@ class Scroll extends Component {
   }
   
   touchMove = (e) => {
+  	e.nativeEvent.stopImmediatePropagation();
   	let target = e.currentTarget
   	target['r-end-y'] = e.targetTouches[0].screenY
   	//滑动的距离为px
@@ -113,13 +115,23 @@ class Scroll extends Component {
   startAnimate = (ev) => {
   	let target = ev.currentTarget
   	let eachRowHeight = this.getEachRowHeight(target)
+  	let pos = target['r-move-dom-top'] //最后一次move的位置
   	let d = 0
+  	var averageVelocity = (target['r-end-y'] - target['r-start-y']) / (target['r-end-time'] - target['r-start-time']);
 	//averageVelocity--平均速度
 	//如果点击速度过快，touchmove没有调用那么不进行滚动后续操作
 	if(!target['r-end-y'] || !target['r-end-time']){
 		return null
 	}
-    var averageVelocity = (target['r-end-y'] - target['r-start-y']) / (target['r-end-time'] - target['r-start-time']);
+	// 控制向上滑动，如果向上滑动出了中间选择线，那就迅速降低加速度
+	let targetHeight = (window.getComputedStyle(target).height.replace(/px/g,''))*1
+	if(pos < (eachRowHeight*3 - targetHeight)){
+		pos = eachRowHeight*3 - targetHeight
+		averageVelocity = 0.2
+	}else if(pos > eachRowHeight*2){
+		pos = eachRowHeight*2
+		averageVelocity = 0.2
+	}
     if (Math.abs(averageVelocity) <= 0.2) {
       averageVelocity = (averageVelocity < 0 ? -0.08 : 0.08);
     } else {
@@ -130,7 +142,7 @@ class Scroll extends Component {
       }
     }
     clearInterval(target['r-interval'])
-    let pos = target['r-move-dom-top']
+    
     target['r-interval'] = setInterval(()=>{
     	let moveLocation = averageVelocity* Math.exp(-0.03 * d)
     	let fontSize = (window.getComputedStyle(document.body).fontSize.replace(/px/g,''))*1+2
@@ -158,7 +170,7 @@ class Scroll extends Component {
   }
   
   /**
-   * 手指脱离屏幕调用改方法
+   * 惯性运动结束调用，控制上线边界，控制位置对齐中间一格
    * 根据top值进行滑动，控制滑动范围不超界
    * e --滑动对象,top--滑动的top值,end--为end表示touchend触发
    */
@@ -171,6 +183,11 @@ class Scroll extends Component {
   	staticData = staticData[currentSlideIndex]
   	let eachRowHeight = this.getEachRowHeight(target)
   	top = Math.abs(top - parseInt(top/eachRowHeight)*eachRowHeight) >= eachRowHeight/2 ? ((parseInt(top/eachRowHeight)-1)*eachRowHeight) : (parseInt(top/eachRowHeight)*eachRowHeight)
+  	// 控制对齐中间一行
+  	let moreValue = top%eachRowHeight
+  	if(moreValue != 0){
+  		top = top - moreValue
+  	}
   	//越界控制
 	if(top >= eachRowHeight*2 + 8){
 	  top = eachRowHeight*2
@@ -178,7 +195,7 @@ class Scroll extends Component {
 	  top = eachRowHeight*3 - height
 	}
 	//滑动结束的值
-	let resultIndex = Math.abs(top-2*eachRowHeight)/eachRowHeight
+	let resultIndex = parseInt(Math.abs(top-2*eachRowHeight)/eachRowHeight)
 	let resultValue = staticData[resultIndex]
 //	if(this.state.slideObj[currentSlideIndex]){
 //		this.state.slideObj[currentSlideIndex]['choiceValue'] = resultValue
@@ -266,18 +283,31 @@ class Scroll extends Component {
 	this.setState({slideObj:slideObj})
   }
   /**
-   * 获取每行的高度
+   * 获取每行的高度,整形
    * 传入滑动的target
    */
   getEachRowHeight = (target)=>{
-  	if(this.state.rowHeight)return this.state.rowHeight
-  	let height = parseFloat((window.getComputedStyle(target).height).replace(/px/g,''))
-  	//将top值转换为能被每行整除的值
   	let staticData = this.transferEnumeData()
   	let currentSlideIndex = this.getSlideIndex(target)
   	staticData = staticData[currentSlideIndex]
-  	this.state.rowHeight = parseInt(height/staticData.length)
-  	return this.state.rowHeight
+  	if(this.state.rowHeight){
+  		return this.state.rowHeight
+  	}else{
+  		// 如果当前state的高度不存在那表示是第一次调用获取每行的高度，此时初始化每行高度为整型值
+  		let scrollContent = this.refs.scrollContent
+  		let slideContent = this.refs['slideElement'+currentSlideIndex]
+  		let eachRowHeight = parseInt(parseFloat((window.getComputedStyle(scrollContent).height).replace(/px/g,''))/5)
+  		let scrollContnetHeight = eachRowHeight*5
+  		scrollContent.style.height = scrollContnetHeight+'px'
+  		slideContent.style.height = eachRowHeight*staticData.length + 'px'
+  		//设置滑动的每一行高度
+  		slideContent.childNodes.forEach((item)=>{
+  			item.style.height = eachRowHeight+'px'
+  		})
+  		this.state.rowHeight = eachRowHeight
+  		return this.state.rowHeight
+  	}
+  	
   }
   /**
    * 获取当前target滑动的索引
@@ -364,14 +394,14 @@ class Scroll extends Component {
   	})
   	
     return (
-    	<div className="scroll-component" ref="scrollComponent" onTouchMove = {this.preventEvent}>
+    	<div className="scroll-component" ref="scrollComponent" >
     		<div className="scroll-opque"></div>
     		<div className="scroll-container" >
     			<div className="scroll-btn">
     				<span className="scroll-btn-left" onClick= { this.cancel }>取消</span>
     				<span className={"scroll-btn-right"+(isAnimating?' disable':'')} onClick= { this.confirm }>确定</span>
     			</div>
-	    		<div className="scroll-content">
+	    		<div className="scroll-content" ref="scrollContent">
 	    			{
 	    				slideArr.map((slide , i)=>{
 	    					return (

@@ -32,7 +32,7 @@ class Input extends Component {
   		return null
   	}
     return (
-    	<div className={"radio-row "+injectData.required}>
+    	<div className={"radio-row sex "+injectData.required}>
     		<label  className="radio-row-label">{ injectData.label }</label>
     		<div className={injectData.readOnly?"radio-row-radio read-only":"radio-row-radio"}>
     		{

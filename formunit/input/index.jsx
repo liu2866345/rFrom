@@ -20,6 +20,18 @@ class Input extends Component {
   		this.props.action ( resultObj )
   	}
   }
+  
+  changeHandlerBlur = ( element ) => {
+  	if (this.props.action) {
+  		let resultObj = {}
+  		let name = element.target.name
+  		let val = element.target.value
+  		resultObj['eventType'] = 'blur'
+  		resultObj['keyName'] = name
+  		resultObj['value'] = val
+  		this.props.action ( resultObj )
+  	}
+  }
 
   render() {
   	let injectData = this.props.injectData || {}
@@ -35,6 +47,7 @@ class Input extends Component {
 		    		  value       = { injectData.value } 
 		    		  placeholder = { injectData.placeholder } 
 		    		  onChange    = { this.changeHandler }
+		    		  onBlur      = { this.changeHandlerBlur }
 		    		  maxLength   = { injectData.maxLength }
 		    		/>
     			)
